@@ -1,0 +1,27 @@
+from flask import Flask, request, jsonify, render_template
+from werkzeug.utils import secure_filename
+import os
+
+app = Flask(name)
+app.config['UPLOAD_FOLDER'] = 'uploads/'
+app.config['ALLOWED_EXTENSIONS'] = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return jsonify({'success': True, 'message': 'File uploaded successfully'})
+    else:
+        return jsonify({'success': False, 'message': 'Invalid file type'})
+
+if name == 'main':
+    app.run(debug=True)
